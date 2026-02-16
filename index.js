@@ -1,25 +1,32 @@
-const container = document.getElementById("movie-container");
+const container = document.getElementById('movie-container');
+const searcher = document.getElementById('searcher');
+let allMovies = [];
 
-fetch("https://api.tvmaze.com/shows")
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Could not fetch resource");
-        }
-        return response.json();
-    })
+fetch('https://api.tvmaze.com/shows')
+    .then(res => res.json())
     .then(data => {
-        data.forEach(peli => {
-            const movieCard = `
-                <div class="movie-card">
-                    <img src="${peli.image ? peli.image.medium : 'https://via.placeholder.com/210x295?text=No+Image'}" alt="${peli.name}">
-                    <h2>${peli.name}</h2>
-                    <p><strong>Géneros:</strong> ${peli.genres.length > 0 ? peli.genres.join(", ") : "N/A"}</p>
-                </div>
-            `;
-            container.innerHTML += movieCard;
-        });
-    })
-    .catch(error => {
-        container.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
-        console.error(error);
+        allMovies = data;
+        render(allMovies);
     });
+
+function render(list) {
+    container.innerHTML = '';
+    list.forEach(movie => {
+        container.innerHTML += `
+            <div style="display: inline-block; width: 200px; margin: 10px; vertical-align: top; text-align: center;">
+                <img src="${movie.image.medium}" style="width: 100%; border-radius: 8px;">
+                <h3 style="font-size: 16px;">${movie.name}</h3>
+                <p style="font-size: 12px; color: gray;">${movie.genres.join(', ')}</p>
+            </div>
+        `;
+    });
+}
+
+searcher.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    const filtered = allMovies.filter(movie => 
+        movie.name.toLowerCase().includes(term) || 
+        movie.genres.join(' ').toLowerCase().includes(term)
+    );
+    render(filtered);
+});
